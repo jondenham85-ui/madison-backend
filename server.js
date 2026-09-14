@@ -99,6 +99,76 @@ app.get('/', (req, res) => {
     }
   });
 });
+// -------------------------
+// STRIPE ROUTES START HERE
+// -------------------------
+
+import Stripe from "stripe";
+import bodyParser from "body-parser";
+
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+
+app.post("/api/create-checkout-session", async (req, res) => {
+  try {
+    const paymentIntent = await stripe.paymentIntents.create({
+      amount: 5000,
+      currency: "usd",
+      automatic_payment_methods: { enabled: true },
+      metadata: {
+        owner: "Jon Denham",
+        system: "MAD Madison AI"
+      }
+    });
+
+    res.json({ clientSecret: paymentIntent.client_secret });
+  } catch (error) {
+    console.error("Stripe error:", error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.post(
+  "/api/stripe/webhook",
+  bodyParser.raw({ type: "application/json" }),
+  (req, res) => {
+    const sig = req.headers["stripe-signature"];
+
+    let event;
+    try {
+      event = stripe.webhooks.constructEvent(
+        req.body,
+        sig,
+        process.env.STRIPE_WEBHOOK_SECRET
+      );
+    } catch (err) {
+      console.error("Webhook signature error:", err.message);
+      return res.status(400).send(`Webhook Error: ${err.message}`);
+    }
+
+    switch (event.type) {
+      case "payment_intent.succeeded":
+        console.log("Payment succeeded:", event.data.object.id);
+        break;
+
+      case "payment_intent.payment_failed":
+        console.log("Payment failed:", event.data.object.id);
+        break;
+
+      default:
+        console.log("Unhandled event:", event.type);
+    }
+
+    res.json({ received: true });
+  }
+);
+
+app.get("/payment-success", (req, res) => {
+  res.json({ status: "success", message: "Payment completed!" });
+});
+
+app.get("/payment-failed", (req, res) => {
+  res.json({ status: "failed", message: "Payment failed." });
+});
 
 // --------------------------------
 // 404 Handler
