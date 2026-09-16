@@ -1,124 +1,102 @@
-const express = require('express');
-const cors = require('cors');
+// server.js
 
-// -------------------------------
-// Stripe Initialization
-// -------------------------------
-const stripeSecret = process.env.STRIPE_SECRET_KEY;
-
-let stripe = null;
-if (!stripeSecret) {
-  console.warn("⚠️ STRIPE_SECRET_KEY is missing — Stripe routes disabled");
-} else {
-  stripe = require('stripe')(stripeSecret);
-}
+const express = require("express");
+const cors = require("cors");
+const jwt = require("jsonwebtoken");
 
 const app = express();
 
-// Middleware
+// ---------- BASIC MIDDLEWARE ----------
 app.use(express.json());
 app.use(cors());
 
-// -------------------------------
-// Health Check Route
-// -------------------------------
-app.get('/api/health', (req, res) => {
-  res.json({
-    status: 'ok',
-    message: 'Madison backend is live'
-  });
+// ---------- OWNER CONFIG ----------
+const OWNERS = [
+  "jondenham85@gmail.com",
+  "allydenham013@gmail.com"
+];
+
+// Make sure this is set in Render env vars:
+// OWNER_JWT_SECRET = some-long-random-string
+
+// ---------- OWNER LOGIN ----------
+app.post("/auth/owner/login", (req, res) => {
+  const { email } = req.body;
+
+  if (!email || !OWNERS.includes(email)) {
+    return res.status(403).json({ success: false, message: "Not authorized" });
+  }
+
+  const token = jwt.sign(
+    { email, role: "owner" },
+    process.env.OWNER_JWT_SECRET,
+    { expiresIn: "7d" }
+  );
+
+  return res.json({ success: true, token });
 });
 
-// -------------------------------
-// System Diagnostic Route
-// -------------------------------
-app.get('/api/system/diagnostic', (req, res) => {
-  res.json({
-    status: 'ok',
-    uptime: process.uptime(),
-    version: '1.0.0',
-    engines: {
-      owner: true,
-      revenue: true,
-      content: true,
-      traffic: true,
-      funnel: true,
-      scaling: true
-    }
-  });
-});
+// ---------- OWNER TOKEN VALIDATION ----------
+app.post("/auth/owner/validate", (req, res) => {
+  const { token } = req.body;
 
-// -------------------------------
-// Owner Status Route
-// -------------------------------
-app.get('/api/owner/status', (req, res) => {
-  res.json({
-    owner: 'Jon & Ally',
-    system: 'MAD Madison AI',
-    backend: 'online'
-  });
-});
-
-// -------------------------------
-// Stripe Test Checkout Route
-// -------------------------------
-app.post('/api/stripe/checkout', async (req, res) => {
-  if (!stripe) {
-    return res.status(500).json({
-      error: "Stripe is not configured — missing STRIPE_SECRET_KEY"
-    });
+  if (!token) {
+    return res.json({ valid: false });
   }
 
   try {
-    const session = await stripe.checkout.sessions.create({
-      mode: 'payment',
-      payment_method_types: ['card'],
-      line_items: [
-        {
-          price_data: {
-            currency: 'usd',
-            product_data: {
-              name: 'MAD Madison AI Test Charge'
-            },
-            unit_amount: 500 // $5.00
-          },
-          quantity: 1
-        }
-      ],
-      success_url: process.env.STRIPE_SUCCESS_URL || 'https://madmadisonai.com/success',
-      cancel_url: process.env.STRIPE_CANCEL_URL || 'https://madmadisonai.com/cancel'
-    });
+    const decoded = jwt.verify(token, process.env.OWNER_JWT_SECRET);
 
-    res.json({ url: session.url });
+    if (!OWNERS.includes(decoded.email)) {
+      return res.json({ valid: false });
+    }
+
+    return res.json({ valid: true });
   } catch (err) {
-    console.error("Stripe Checkout Error:", err);
-    res.status(500).json({ error: err.message });
+    return res.json({ valid: false });
   }
 });
 
-// -------------------------------
-// Default Route
-// -------------------------------
-app.get('/', (req, res) => {
+// ---------- OWNER-ONLY MIDDLEWARE ----------
+function ownerOnly(req, res, next) {
+  const authHeader = req.headers.authorization || "";
+  const token = authHeader.startsWith("Bearer ")
+    ? authHeader.slice("Bearer ".length)
+    : null;
+
+  if (!token) {
+    return res.status(403).json({ success: false, message: "Missing token" });
+  }
+
+  try {
+    const decoded = jwt.verify(token, process.env.OWNER_JWT_SECRET);
+
+    if (!OWNERS.includes(decoded.email)) {
+      return res.status(403).json({ success: false, message: "Not authorized" });
+    }
+
+    req.owner = decoded.email;
+    next();
+  } catch (err) {
+    return res.status(403).json({ success: false, message: "Invalid token" });
+  }
+}
+
+// ---------- HEALTH / ROOT ----------
+app.get("/", (req, res) => {
+  res.json({ status: "ok", service: "Madison backend" });
+});
+
+// ---------- OWNER-ONLY EXAMPLE ROUTE ----------
+app.get("/owner/data", ownerOnly, (req, res) => {
   res.json({
-    message: 'MAD Madison AI Backend Running with Stripe Enabled'
+    message: "Owner access granted",
+    owner: req.owner
   });
 });
 
-// -------------------------------
-// 404 Handler
-// -------------------------------
-app.use((req, res) => {
-  res.status(404).json({
-    error: 'Not found',
-    path: req.originalUrl
-  });
-});
-
-// -------------------------------
-// Start Server
-// -------------------------------
+// ---------- START SERVER ----------
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log(`MAD Madison AI backend running on port ${PORT}`);
+  console.log(`Madison backend running on port ${PORT}`);
 });
