@@ -1,4 +1,4 @@
-// server.js
+// server.js — MAD Madison AI Backend (Render)
 
 const express = require("express");
 const cors = require("cors");
@@ -6,20 +6,29 @@ const jwt = require("jsonwebtoken");
 
 const app = express();
 
-// ---------- BASIC MIDDLEWARE ----------
+// ----------------------------
+// BASIC MIDDLEWARE
+// ----------------------------
 app.use(express.json());
-app.use(cors());
+app.use(
+  cors({
+    origin: "*", // You can restrict this later to your Vercel domain
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+  })
+);
 
-// ---------- OWNER CONFIG ----------
+// ----------------------------
+// OWNER CONFIG
+// ----------------------------
 const OWNERS = [
   "jondenham85@gmail.com",
   "allydenham013@gmail.com"
 ];
 
-// Make sure this is set in Render env vars:
-// OWNER_JWT_SECRET = some-long-random-string
-
-// ---------- OWNER LOGIN ----------
+// ----------------------------
+// OWNER LOGIN
+// ----------------------------
 app.post("/auth/owner/login", (req, res) => {
   const { email } = req.body;
 
@@ -36,7 +45,9 @@ app.post("/auth/owner/login", (req, res) => {
   return res.json({ success: true, token });
 });
 
-// ---------- OWNER TOKEN VALIDATION ----------
+// ----------------------------
+// OWNER TOKEN VALIDATION
+// ----------------------------
 app.post("/auth/owner/validate", (req, res) => {
   const { token } = req.body;
 
@@ -57,7 +68,9 @@ app.post("/auth/owner/validate", (req, res) => {
   }
 });
 
-// ---------- OWNER-ONLY MIDDLEWARE ----------
+// ----------------------------
+// OWNER-ONLY MIDDLEWARE
+// ----------------------------
 function ownerOnly(req, res, next) {
   const authHeader = req.headers.authorization || "";
   const token = authHeader.startsWith("Bearer ")
@@ -82,12 +95,20 @@ function ownerOnly(req, res, next) {
   }
 }
 
-// ---------- HEALTH / ROOT ----------
+// ----------------------------
+// HEALTH CHECK
+// ----------------------------
 app.get("/", (req, res) => {
-  res.json({ status: "ok", service: "Madison backend" });
+  res.json({
+    status: "ok",
+    service: "MAD Madison AI Backend",
+    ownerAuth: true
+  });
 });
 
-// ---------- OWNER-ONLY EXAMPLE ROUTE ----------
+// ----------------------------
+// OWNER-ONLY TEST ROUTE
+// ----------------------------
 app.get("/owner/data", ownerOnly, (req, res) => {
   res.json({
     message: "Owner access granted",
@@ -95,8 +116,10 @@ app.get("/owner/data", ownerOnly, (req, res) => {
   });
 });
 
-// ---------- START SERVER ----------
+// ----------------------------
+// START SERVER
+// ----------------------------
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log(`Madison backend running on port ${PORT}`);
+  console.log(`MAD Madison AI backend running on port ${PORT}`);
 });
