@@ -5,7 +5,7 @@ import cors from "cors";
 import productsHandler from "../api/shopmad/products.js";
 import adminHandler from "../api/shopmad/admin.js";
 
-// Stripe backend (kept for stability, not active)
+// Stripe backend (kept for stability)
 import stripeBackend from "../api/Stripe/backend.js";
 
 const app = express();
@@ -20,5 +20,13 @@ app.get("/health", (req, res) => {
 });
 
 // ShopMAD API
-app.get("/api/shopmad/products", productsHandler
+app.get("/api/shopmad/products", productsHandler);
+app.post("/api/shopmad/admin", adminHandler);
+
+// Stripe API (safe but dormant)
+app.use("/api/stripe", stripeBackend);
+
+app.listen(PORT, () => {
+  console.log(`Madison backend running on port ${PORT}`);
+});
 
