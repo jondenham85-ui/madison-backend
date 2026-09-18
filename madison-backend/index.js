@@ -1,5 +1,8 @@
-const express = require('express');
-const cors = require('cors');
+import express from "express";
+import cors from "cors";
+import productsHandler from "../api/shopmad/products.js";
+import adminHandler from "../api/shopmad/admin.js";
+import stripeBackend from "../api/Stripe/backend.js";
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -7,45 +10,17 @@ const PORT = process.env.PORT || 3000;
 app.use(cors());
 app.use(express.json());
 
-app.get('/api/health', (req, res) => {
-  res.json({
-    status: 'ok',
-    message: 'Backend is running',
-    timestamp: new Date().toISOString(),
-  });
-});
+// ShopMAD routes
+app.get("/api/shopmad/products", productsHandler);
+app.post("/api/shopmad/admin", adminHandler);
 
-app.get('/api/system/diagnostic', (req, res) => {
-  res.json({
-    status: 'ok',
-    uptime: process.uptime(),
-    version: '1.0.0',
-    engines: {
-      owner: true,
-      revenue: true,
-      content: true,
-      traffic: true,
-      funnel: true,
-      scaling: true,
-    },
-    timestamp: new Date().toISOString(),
-  });
-});
+// Stripe backend (existing)
+app.use("/api/stripe", stripeBackend);
 
-app.get('/api/owner/status', (req, res) => {
-  res.json({
-    owner: 'Jon Denham',
-    system: 'MAD Madison AI',
-    backend: 'online',
-    deployment: 'render',
-    timestamp: new Date().toISOString(),
-  });
-});
-
-app.get('/', (req, res) => {
-  res.send('MAD Madison Backend is running');
+app.get("/health", (req, res) => {
+  res.status(200).json({ status: "ok", service: "madison-backend" });
 });
 
 app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+  console.log(`Madison backend running on port ${PORT}`);
 });
