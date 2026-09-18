@@ -1,12 +1,9 @@
 import express from "express";
 import cors from "cors";
 
-// ShopMAD routes (match exact folder name)
+// ShopMAD routes
 import productsHandler from "../api/ShopMAD/products.js";
 import adminHandler from "../api/ShopMAD/admin.js";
-
-// Stripe backend (optional)
-import stripeBackend from "../api/Stripe/backend.js";
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -23,10 +20,6 @@ app.get("/health", (req, res) => {
 app.get("/api/shopmad/products", productsHandler);
 app.post("/api/shopmad/admin", adminHandler);
 
-// Stripe API
-app.use("/api/stripe", stripeBackend);
-
 app.listen(PORT, () => {
   console.log(`Madison backend running on port ${PORT}`);
 });
-
