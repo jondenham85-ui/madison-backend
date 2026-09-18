@@ -1,11 +1,11 @@
 import express from "express";
 import cors from "cors";
 
-// ShopMAD routes
-import productsHandler from "../api/shopmad/products.js";
-import adminHandler from "../api/shopmad/admin.js";
+// ShopMAD routes (match exact folder name)
+import productsHandler from "../api/ShopMAD/products.js";
+import adminHandler from "../api/ShopMAD/admin.js";
 
-// Stripe backend (kept for stability)
+// Stripe backend (optional)
 import stripeBackend from "../api/Stripe/backend.js";
 
 const app = express();
@@ -23,7 +23,7 @@ app.get("/health", (req, res) => {
 app.get("/api/shopmad/products", productsHandler);
 app.post("/api/shopmad/admin", adminHandler);
 
-// Stripe API (safe but dormant)
+// Stripe API
 app.use("/api/stripe", stripeBackend);
 
 app.listen(PORT, () => {
