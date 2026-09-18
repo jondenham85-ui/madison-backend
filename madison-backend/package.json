@@ -1,12 +1,13 @@
 {
   "name": "madison-backend",
   "version": "1.0.0",
-  "main": "index.js",
+  "main": "madison-backend/index.js",
   "scripts": {
-    "start": "node index.js"
+    "start": "node madison-backend/index.js"
   },
   "dependencies": {
-    "express": "^4.18.2",
+    "express": "^4.19.0",
     "cors": "^2.8.5"
   }
 }
+
