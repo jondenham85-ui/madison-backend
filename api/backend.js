@@ -1,16 +1,8 @@
-const BASE_URL = process.env.NEXT_PUBLIC_API_URL;
+import pg from "pg";
 
-export async function getBackendHealth() {
-  const res = await fetch(`${BASE_URL}/api/health`);
-  return res.json();
-}
+const { Pool } = pg;
 
-export async function getDiagnostic() {
-  const res = await fetch(`${BASE_URL}/api/system/diagnostic`);
-  return res.json();
-}
-
-export async function getOwnerStatus() {
-  const res = await fetch(`${BASE_URL}/api/owner/status`);
-  return res.json();
-}
+export const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: { rejectUnauthorized: false }
+});
