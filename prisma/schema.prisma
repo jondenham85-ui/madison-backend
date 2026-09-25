@@ -1,0 +1,103 @@
+// prisma/schema.prisma
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  password  String
+  role      String   @default("admin")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Product {
+  id        Int      @id @default(autoincrement())
+  name      String
+  price     Float
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Setting {
+  id          Int      @id @default(autoincrement())
+  siteName    String
+  ownerEmail  String
+  supportEmail String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model AutomationTemplate {
+  id          Int      @id @default(autoincrement())
+  name        String
+  description String
+  type        String
+  schedule    String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  jobs        AutomationJob[]
+}
+
+model AutomationJob {
+  id          Int      @id @default(autoincrement())
+  template    AutomationTemplate @relation(fields: [templateId], references: [id])
+  templateId  Int
+  status      String
+  inputJson   String
+  resultJson  String?
+  createdAt   DateTime @default(now())
+  startedAt   DateTime?
+  finishedAt  DateTime?
+}
+
+model Lead {
+  id        Int      @id @default(autoincrement())
+  name      String
+  email     String
+  status    String   @default("new")
+  notes     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Customer {
+  id        Int      @id @default(autoincrement())
+  name      String
+  email     String
+  notes     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Revenue {
+  id        Int      @id @default(autoincrement())
+  amount    Float
+  source    String
+  note      String?
+  createdAt DateTime @default(now())
+}
+
+model Memory {
+  id        Int      @id @default(autoincrement())
+  type      MemoryType
+  owner     String
+  content   String
+  createdAt DateTime @default(now())
+}
+
+enum MemoryType {
+  PERSONAL
+  BUSINESS
+  CUSTOMER
+  LEAD
+  VOICE
+  CHAT
+}
