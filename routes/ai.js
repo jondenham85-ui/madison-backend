@@ -1,14 +1,10 @@
 const express = require("express");
 const router = express.Router();
-const axios = require("axios");
+const operator = require("../src/operator/index").default;
 
 /**
  * Madison AI Router
- * This is the intelligent bridge between the frontend chat
- * and the CEO operator engine.
- *
- * Madison interprets the user's message and decides which
- * operator route to call.
+ * Intelligent bridge between frontend chat and CEO operator engine.
  */
 
 router.post("/", async (req, res) => {
@@ -19,67 +15,51 @@ router.post("/", async (req, res) => {
       return res.status(400).json({ error: "Message is required" });
     }
 
-    // Basic intent detection
     const lower = message.toLowerCase();
-
-    let endpoint = null;
-    let payload = {};
+    let result;
 
     // EXECUTE CODE
     if (lower.startsWith("run ") || lower.includes("execute code")) {
-      endpoint = "/operator/execute";
-      payload.code = message.replace(/^run /i, "");
+      const code = message.replace(/^run /i, "");
+      result = await operator.executeCode(code);
     }
 
     // READ FILE
     else if (lower.startsWith("read file")) {
       const path = message.replace(/read file/i, "").trim();
-      endpoint = "/operator/file/read";
-      payload.path = path;
+      result = await operator.readFile(path);
     }
 
     // WRITE FILE
     else if (lower.startsWith("write file")) {
       const parts = message.replace(/write file/i, "").trim().split("::");
-      endpoint = "/operator/file/write";
-      payload.path = parts[0]?.trim();
-      payload.content = parts[1]?.trim() || "";
+      const path = parts[0]?.trim();
+      const content = parts[1]?.trim() || "";
+      result = await operator.writeFile(path, content);
     }
 
     // PATCH FILE
     else if (lower.startsWith("patch file")) {
       const parts = message.replace(/patch file/i, "").trim().split("::");
-      endpoint = "/operator/file/patch";
-      payload.path = parts[0]?.trim();
-      payload.patch = {
+      const path = parts[0]?.trim();
+      const patch = {
         target: parts[1]?.trim(),
         replace: parts[2]?.trim()
       };
+      result = await operator.patchFile(path, patch);
     }
 
     // DEPLOY
     else if (lower.includes("deploy")) {
-      endpoint = "/operator/deploy";
-      payload.service = "full-system";
+      result = await operator.deploy("full-system");
     }
 
-    // TASK ENGINE (default)
+    // DEFAULT: TASK ENGINE
     else {
-      endpoint = "/operator/task";
-      payload.task = message;
+      result = await operator.runTask(message);
     }
 
-    // Forward to CEO operator engine
-    const backendURL = process.env.BACKEND_URL || "http://localhost:3000";
-
-    const result = await axios.post(`${backendURL}${endpoint}`, payload);
-
-    res.json({
-      success: true,
-      route: endpoint,
-      payload,
-      result: result.data
-    });
+    res.json({ success: true, result });
 
   } catch (err) {
     console.error("AI Route Error:", err);
