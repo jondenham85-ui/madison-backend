@@ -1,4 +1,5 @@
-// prisma/schema.prisma
+// Prisma schema for Madison Backend
+
 generator client {
   provider = "prisma-client-js"
 }
@@ -6,6 +7,15 @@ generator client {
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+}
+
+enum MemoryType {
+  PERSONAL
+  BUSINESS
+  CUSTOMER
+  LEAD
+  VOICE
+  CHAT
 }
 
 model User {
@@ -43,19 +53,23 @@ model AutomationTemplate {
   schedule    String
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
-  jobs        AutomationJob[]
+
+  jobs AutomationJob[]
 }
 
 model AutomationJob {
-  id          Int      @id @default(autoincrement())
-  template    AutomationTemplate @relation(fields: [templateId], references: [id])
-  templateId  Int
-  status      String
-  inputJson   String
-  resultJson  String?
-  createdAt   DateTime @default(now())
-  startedAt   DateTime?
-  finishedAt  DateTime?
+  id         Int      @id @default(autoincrement())
+  templateId Int
+  status     String
+  inputJson  String
+  resultJson String?
+  createdAt  DateTime @default(now())
+  startedAt  DateTime?
+  finishedAt DateTime?
+
+  template AutomationTemplate @relation(fields: [templateId], references: [id], onDelete: Cascade)
+
+  @@index([templateId])
 }
 
 model Lead {
@@ -66,6 +80,8 @@ model Lead {
   notes     String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@index([email])
 }
 
 model Customer {
@@ -75,6 +91,8 @@ model Customer {
   notes     String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@index([email])
 }
 
 model Revenue {
@@ -86,18 +104,11 @@ model Revenue {
 }
 
 model Memory {
-  id        Int      @id @default(autoincrement())
+  id        Int        @id @default(autoincrement())
   type      MemoryType
   owner     String
   content   String
-  createdAt DateTime @default(now())
-}
+  createdAt DateTime   @default(now())
 
-enum MemoryType {
-  PERSONAL
-  BUSINESS
-  CUSTOMER
-  LEAD
-  VOICE
-  CHAT
+  @@index([type])
 }
