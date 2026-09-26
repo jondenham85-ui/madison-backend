@@ -1,5 +1,3 @@
-// Prisma schema for Madison Backend
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -18,11 +16,18 @@ enum MemoryType {
   CHAT
 }
 
+enum Role {
+  admin
+  developer
+  operator
+  user
+}
+
 model User {
   id        Int      @id @default(autoincrement())
   email     String   @unique
   password  String
-  role      String   @default("admin")
+  role      Role     @default(user)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -37,12 +42,12 @@ model Product {
 }
 
 model Setting {
-  id          Int      @id @default(autoincrement())
-  siteName    String
-  ownerEmail  String
+  id           Int      @id @default(autoincrement())
+  siteName     String
+  ownerEmail   String
   supportEmail String
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 }
 
 model AutomationTemplate {
