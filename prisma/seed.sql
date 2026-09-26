@@ -1,25 +1,26 @@
-------------------------------------------------------------
--- ADMIN USER
-------------------------------------------------------------
+-- Admins
 INSERT INTO "User" ("email", "password", "role")
 VALUES 
   ('jondenham85@gmail.com', 'admin123', 'admin'),
   ('allydenham013@gmail.com', 'admin123', 'admin')
 ON CONFLICT ("email") DO NOTHING;
 
+-- CEO Madison operator user
+INSERT INTO "User" ("email", "password", "role")
+VALUES ('madison@system.ai', 'operator', 'operator')
+ON CONFLICT ("email") DO NOTHING;
 
-------------------------------------------------------------
--- SETTINGS
-------------------------------------------------------------
+-- Amarion developer user
+INSERT INTO "User" ("email", "password", "role")
+VALUES ('amarion@example.com', 'dev123', 'developer')
+ON CONFLICT ("email") DO NOTHING;
+
+-- Settings
 INSERT INTO "Setting" ("siteName", "ownerEmail", "supportEmail")
-VALUES 
-  ('Madison AI', 'jondenham85@gmail.com', 'support@madisonai.com')
+VALUES ('Madison AI', 'jondenham85@gmail.com', 'support@madisonai.com')
 ON CONFLICT DO NOTHING;
 
-
-------------------------------------------------------------
--- PRODUCTS (ShopMAD)
-------------------------------------------------------------
+-- Products
 INSERT INTO "Product" ("name", "price", "active")
 VALUES
   ('Madison AI Monthly Subscription', 29.99, TRUE),
@@ -29,10 +30,7 @@ VALUES
   ('Madison Pro Operator Tools', 199.00, TRUE)
 ON CONFLICT DO NOTHING;
 
-
-------------------------------------------------------------
--- LEADS
-------------------------------------------------------------
+-- Leads
 INSERT INTO "Lead" ("name", "email", "status", "notes")
 VALUES
   ('Sarah Thompson', 'sarah@example.com', 'new', 'Interested in automation tools'),
@@ -41,10 +39,7 @@ VALUES
   ('Test Lead', 'lead@example.com', 'new', 'Initial test lead')
 ON CONFLICT DO NOTHING;
 
-
-------------------------------------------------------------
--- CUSTOMERS
-------------------------------------------------------------
+-- Customers
 INSERT INTO "Customer" ("name", "email", "notes")
 VALUES
   ('James Carter', 'james@example.com', 'Upgraded to Madison Pro'),
@@ -52,23 +47,18 @@ VALUES
   ('Test Customer', 'customer@example.com', 'Imported from seed')
 ON CONFLICT DO NOTHING;
 
-
-------------------------------------------------------------
--- MEMORY (System + Business + Chat)
-------------------------------------------------------------
+-- Memory (including CEO authority)
 INSERT INTO "Memory" ("type", "owner", "content")
 VALUES
   ('BUSINESS', 'system', 'Madison AI initialized successfully.'),
   ('CHAT', 'system', 'Welcome message generated for new users.'),
   ('LEAD', 'system', 'Lead pipeline seeded with initial prospects.'),
   ('VOICE', 'system', 'Voice assistant module activated.'),
-  ('PERSONAL', 'system', 'Jon prefers black + teal UI themes.')
+  ('PERSONAL', 'system', 'Jon prefers black + teal UI themes.'),
+  ('BUSINESS', 'system', 'Madison is authorized as CEO operator with full system control.')
 ON CONFLICT DO NOTHING;
 
-
-------------------------------------------------------------
--- AUTOMATION TEMPLATES
-------------------------------------------------------------
+-- Automation Templates
 INSERT INTO "AutomationTemplate" ("name", "description", "type", "schedule")
 VALUES
   ('Daily Revenue Summary', 'Sends Jon a daily revenue report.', 'report', '0 8 * * *'),
@@ -77,42 +67,32 @@ VALUES
   ('System Health Check', 'Runs diagnostics every hour.', 'system', '0 * * * *')
 ON CONFLICT DO NOTHING;
 
-
-------------------------------------------------------------
--- AUTOMATION JOBS (linked to templates)
-------------------------------------------------------------
--- Daily Revenue Summary job
+-- Automation Jobs
 INSERT INTO "AutomationJob" ("templateId", "status", "inputJson", "resultJson")
 SELECT id, 'pending', '{"range":"24h"}', NULL
 FROM "AutomationTemplate"
 WHERE name = 'Daily Revenue Summary'
 ON CONFLICT DO NOTHING;
 
--- Lead Follow-Up job
 INSERT INTO "AutomationJob" ("templateId", "status", "inputJson", "resultJson")
 SELECT id, 'pending', '{"action":"email"}', NULL
 FROM "AutomationTemplate"
 WHERE name = 'Lead Follow-Up'
 ON CONFLICT DO NOTHING;
 
--- Customer Engagement job
 INSERT INTO "AutomationJob" ("templateId", "status", "inputJson", "resultJson")
 SELECT id, 'pending', '{"segment":"active"}', NULL
 FROM "AutomationTemplate"
 WHERE name = 'Customer Engagement'
 ON CONFLICT DO NOTHING;
 
--- System Health Check job
 INSERT INTO "AutomationJob" ("templateId", "status", "inputJson", "resultJson")
 SELECT id, 'pending', '{"check":"system"}', NULL
 FROM "AutomationTemplate"
 WHERE name = 'System Health Check'
 ON CONFLICT DO NOTHING;
 
-
-------------------------------------------------------------
--- REVENUE (Sample entries)
-------------------------------------------------------------
+-- Revenue
 INSERT INTO "Revenue" ("amount", "source", "note")
 VALUES
   (100.00, 'Initialization', 'First test revenue entry'),
