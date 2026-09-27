@@ -6,10 +6,10 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Correct operator path (Render requires this)
-const operator = require("./operator");
+// Correct operator path for your repo structure
+const operator = require("./src/operator");
 
-// Madison AI Router Logic (inlined for simplicity)
+// Madison AI Router Logic
 app.post("/api/chat", async (req, res) => {
   try {
     const { message } = req.body;
@@ -21,19 +21,16 @@ app.post("/api/chat", async (req, res) => {
     const lower = message.toLowerCase();
     let result;
 
-    // EXECUTE CODE
     if (lower.startsWith("run ") || lower.includes("execute code")) {
       const code = message.replace(/^run /i, "");
       result = await operator.executeCode(code);
     }
 
-    // READ FILE
     else if (lower.startsWith("read file")) {
       const path = message.replace(/read file/i, "").trim();
       result = await operator.readFile(path);
     }
 
-    // WRITE FILE
     else if (lower.startsWith("write file")) {
       const parts = message.replace(/write file/i, "").trim().split("::");
       const path = parts[0]?.trim();
@@ -41,7 +38,6 @@ app.post("/api/chat", async (req, res) => {
       result = await operator.writeFile(path, content);
     }
 
-    // PATCH FILE
     else if (lower.startsWith("patch file")) {
       const parts = message.replace(/patch file/i, "").trim().split("::");
       const path = parts[0]?.trim();
@@ -52,12 +48,10 @@ app.post("/api/chat", async (req, res) => {
       result = await operator.patchFile(path, patch);
     }
 
-    // DEPLOY
     else if (lower.includes("deploy")) {
       result = await operator.deploy("full-system");
     }
 
-    // DEFAULT: TASK ENGINE
     else {
       result = await operator.runTask(message);
     }
@@ -73,7 +67,7 @@ app.post("/api/chat", async (req, res) => {
   }
 });
 
-// Health check route
+// Health check
 app.get("/api/status", (req, res) => {
   res.json({ status: "Madison backend online" });
 });
