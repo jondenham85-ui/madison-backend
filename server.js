@@ -1,13 +1,16 @@
 const express = require("express");
-const router = express.Router();
-const operator = require("../operator/index");
+const cors = require("cors");
+const app = express();
 
-/**
- * Madison AI Router
- * Intelligent bridge between frontend chat and CEO operator engine.
- */
+// Middleware
+app.use(cors());
+app.use(express.json());
 
-router.post("/", async (req, res) => {
+// Correct operator path (Render requires this)
+const operator = require("./operator");
+
+// Madison AI Router Logic (inlined for simplicity)
+app.post("/api/chat", async (req, res) => {
   try {
     const { message } = req.body;
 
@@ -70,4 +73,14 @@ router.post("/", async (req, res) => {
   }
 });
 
-module.exports = router;
+// Health check route
+app.get("/api/status", (req, res) => {
+  res.json({ status: "Madison backend online" });
+});
+
+// Render-required port binding
+const PORT = process.env.PORT || 3000;
+
+app.listen(PORT, () => {
+  console.log(`Madison backend running on port ${PORT}`);
+});
