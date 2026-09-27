@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const operator = require("../src/operator/index").default;
+const operator = require("../operator/index");
 
 /**
  * Madison AI Router
