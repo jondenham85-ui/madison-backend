@@ -1,10 +1,10 @@
 const express = require("express");
 const router = express.Router();
-const chatEngine = require("../engines/chatEngine");
+const operator = require("../operator/index");
 
 router.post("/", async (req, res) => {
   const { message } = req.body;
-  res.json(await chatEngine.process(message));
+  res.json(await operator.runTask(message));
 });
 
 module.exports = router;
