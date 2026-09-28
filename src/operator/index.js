@@ -1,50 +1,45 @@
-// Madison Operator Engine – Main Router
+// Madison Operator Engine – CEO Mode Router
 
-const task = require("./task");
-const execute = require("./execute");
-const file = require("./file");
-const deploy = require("./deploy");
+const tasks = require("./task");
 
 module.exports = {
   async runTask(message) {
     const lower = message.toLowerCase();
 
-    // CEO MODE COMMANDS
+    // ADD PRODUCT
     if (lower.startsWith("add product")) {
       const [, name, price] = message.split("::");
-      return task.addProduct(name.trim(), Number(price.trim()));
+      return tasks.addProduct(name.trim(), price.trim());
     }
 
+    // ADD REVENUE
     if (lower.startsWith("add revenue")) {
       const [, amount, source] = message.split("::");
-      return task.addRevenue(Number(amount.trim()), source.trim());
+      return tasks.addRevenue(amount.trim(), source.trim());
     }
 
+    // ADD WORKFLOW
     if (lower.startsWith("add workflow")) {
       const [, name] = message.split("::");
-      return task.addWorkflow(name.trim());
+      return tasks.addWorkflow(name.trim());
     }
 
+    // SET TIER
     if (lower.startsWith("set tier")) {
-      const [, email, tier] = message.split("::");
-      return task.setTier(email.trim(), tier.trim());
+      const [, email, level] = message.split("::");
+      return tasks.setTier(email.trim(), level.trim());
     }
 
+    // AUDIT SYSTEM
     if (lower.includes("audit system")) {
-      return task.auditSystem();
+      return tasks.auditSystem();
     }
 
+    // DEPLOY SYSTEM
     if (lower.includes("deploy system")) {
-      return task.deploySystem();
+      return tasks.deploySystem();
     }
 
-    // FALLBACK TO EXISTING OPERATOR LOGIC
     return `Task '${message}' not recognized as CEO Mode command.`;
-  },
-
-  executeCode: execute.executeCode,
-  readFile: file.readFile,
-  writeFile: file.writeFile,
-  patchFile: file.patchFile,
-  deploy: deploy.deploy
+  }
 };
