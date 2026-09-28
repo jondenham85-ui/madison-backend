@@ -1,19 +1,15 @@
-const db = require("../utils/db");
+// engines/tier.js
+const tierEngine = require("./tierEngine");
 
 module.exports = {
-  getTier(email) {
-    const users = db.get("users") || {};
-    return users[email]?.tier || "public";
-  },
-
-  setTier(email, tier) {
-    const users = db.get("users") || {};
-    users[email] = {
-      email,
+  getTier: (tier) => {
+    if (typeof tierEngine.getTier === "function") {
+      return tierEngine.getTier(tier);
+    }
+    return {
       tier,
-      updated: Date.now()
+      users: [],
+      note: "Tier engine stub."
     };
-    db.set("users", users);
-    return users[email];
   }
 };
