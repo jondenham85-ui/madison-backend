@@ -11,3 +11,4 @@ async function madisonAI(message) {
 module.exports = {
   madisonAI
 };
+
