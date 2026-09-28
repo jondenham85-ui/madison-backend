@@ -6,10 +6,21 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Correct operator path based on your repo structure
+// Load operator engine
 const operator = require("./src/operator");
 
-// Madison AI Router Logic
+// Load conversational Madison
+const { madisonAI } = require("./src/ai/madison");
+
+// OWNER LIST
+const OWNERS = [
+  "jondenham85@gmail.com",
+  "allydenham013@gmail.com"
+];
+
+// ===============================
+// OPERATOR MADISON (tasks)
+// ===============================
 app.post("/api/chat", async (req, res) => {
   try {
     const { message } = req.body;
@@ -73,12 +84,59 @@ app.post("/api/chat", async (req, res) => {
   }
 });
 
-// Health check
+// ===============================
+// CONVERSATIONAL MADISON (chat)
+// ===============================
+app.post("/api/talk", async (req, res) => {
+  try {
+    const { message } = req.body;
+    const reply = await madisonAI(message);
+    res.json({ reply });
+  } catch (err) {
+    console.error("Talk error:", err);
+    res.status(500).json({ error: "Chat failed" });
+  }
+});
+
+// ===============================
+// OWNER DASHBOARD (Jon + Alison)
+// ===============================
+app.post("/api/owner", async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    if (!email || !OWNERS.includes(email)) {
+      return res.status(403).json({ error: "Access denied" });
+    }
+
+    res.json({
+      status: "owner-access-granted",
+      owner: email,
+      dashboard: {
+        products: [],
+        revenue: { total: 0, history: [] },
+        workflows: [],
+        system: { status: "online", uptime: process.uptime() },
+        engine: { status: "ready", version: "1.0.0" }
+      }
+    });
+
+  } catch (err) {
+    console.error("Owner dashboard error:", err);
+    res.status(500).json({ error: "Owner dashboard failed" });
+  }
+});
+
+// ===============================
+// HEALTH CHECK
+// ===============================
 app.get("/api/status", (req, res) => {
   res.json({ status: "Madison backend online" });
 });
 
-// Render-required port binding
+// ===============================
+// PORT BINDING (Render)
+// ===============================
 const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, () => {
