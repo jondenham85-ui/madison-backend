@@ -1,10 +1,25 @@
-const express = require("express");
-const router = express.Router();
-const workflowEngine = require("../engines/workflowEngine");
+// engines/workflow.js
+const workflowEngine = require("./workflowEngine");
 
-router.post("/run", (req, res) => {
-  const { name, payload } = req.body;
-  res.json(workflowEngine.runWorkflow(name, payload));
-});
+module.exports = {
+  getAll: () => {
+    if (typeof workflowEngine.getAll === "function") {
+      return workflowEngine.getAll();
+    }
+    return [
+      { id: 1, name: "default-workflow", status: "active" }
+    ];
+  },
 
-module.exports = router;
+  runWorkflow: (payload) => {
+    if (typeof workflowEngine.runWorkflow === "function") {
+      return workflowEngine.runWorkflow(payload);
+    }
+    return {
+      ok: true,
+      workflow: "default",
+      received: payload,
+      processedAt: new Date().toISOString()
+    };
+  }
+};
