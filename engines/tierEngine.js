@@ -1,22 +1,19 @@
 const db = require("../utils/db");
 
 module.exports = {
-  getTier(userId) {
-    const tiers = db.read("tiers");
-    return tiers[userId] || "public";
+  getTier(email) {
+    const users = db.get("users") || {};
+    return users[email]?.tier || "public";
   },
 
-  setTier(userId, tier) {
-    const tiers = db.read("tiers");
-    tiers[userId] = tier;
-    db.write("tiers", tiers);
-
-    global.broadcast({
-      type: "tier:update",
-      userId,
-      tier
-    });
-
-    return tier;
+  setTier(email, tier) {
+    const users = db.get("users") || {};
+    users[email] = {
+      email,
+      tier,
+      updated: Date.now()
+    };
+    db.set("users", users);
+    return users[email];
   }
 };
