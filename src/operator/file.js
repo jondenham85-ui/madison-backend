@@ -1,32 +1,47 @@
+// src/operator/file.js
 const fs = require("fs");
+const path = require("path");
+
+function resolve(p) {
+  return path.join(process.cwd(), p);
+}
 
 module.exports = {
-  read(path) {
+  read: async (p) => {
     try {
-      const content = fs.readFileSync(path, "utf8");
-      return { success: true, content };
+      const full = resolve(p);
+      const data = fs.readFileSync(full, "utf8");
+      return { ok: true, path: p, data };
     } catch (err) {
-      return { success: false, error: err.toString() };
+      return { ok: false, error: err.toString() };
     }
   },
 
-  write(path, content) {
+  write: async (p, content) => {
     try {
-      fs.writeFileSync(path, content);
-      return { success: true };
+      const full = resolve(p);
+      fs.writeFileSync(full, content, "utf8");
+      return { ok: true, path: p, written: content.length };
     } catch (err) {
-      return { success: false, error: err.toString() };
+      return { ok: false, error: err.toString() };
     }
   },
 
-  patch(path, patch) {
+  patch: async (p, patch) => {
     try {
-      let content = fs.readFileSync(path, "utf8");
-      content = content.replace(patch.target, patch.replace);
-      fs.writeFileSync(path, content);
-      return { success: true };
+      const full = resolve(p);
+      let data = fs.readFileSync(full, "utf8");
+
+      const updated = data.replace(patch.target, patch.replace);
+      fs.writeFileSync(full, updated, "utf8");
+
+      return {
+        ok: true,
+        path: p,
+        patch
+      };
     } catch (err) {
-      return { success: false, error: err.toString() };
+      return { ok: false, error: err.toString() };
     }
   }
 };
