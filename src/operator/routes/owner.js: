@@ -1,0 +1,44 @@
+const express = require("express");
+const router = express.Router();
+
+const OWNERS = [
+  "jondenham85@gmail.com",
+  "allydenham013@gmail.com"
+];
+
+// Dummy loaders – replace with your real db/utils
+async function loadProducts() { return []; }
+async function loadRevenue() { return { total: 0, history: [] }; }
+async function loadWorkflows() { return []; }
+async function loadSystemStatus() { return { status: "ok" }; }
+async function loadEngineStatus() { return { status: "ok" }; }
+
+router.post("/", async (req, res) => {
+  const { email } = req.body;
+
+  if (!email || !OWNERS.includes(email)) {
+    return res.status(403).json({ error: "Access denied" });
+  }
+
+  const [products, revenue, workflows, system, engine] = await Promise.all([
+    loadProducts(),
+    loadRevenue(),
+    loadWorkflows(),
+    loadSystemStatus(),
+    loadEngineStatus()
+  ]);
+
+  res.json({
+    status: "owner-access-granted",
+    owner: email,
+    dashboard: {
+      products,
+      revenue,
+      workflows,
+      system,
+      engine
+    }
+  });
+});
+
+module.exports = router;
