@@ -1,42 +1,32 @@
-// Workflow Engine – Madison CEO Mode
-
-const fs = require("fs");
-const path = require("path");
-
-const DB_PATH = path.join(__dirname, "..", "db", "workflows.json");
-
-function load() {
-  if (!fs.existsSync(DB_PATH)) return {};
-  return JSON.parse(fs.readFileSync(DB_PATH, "utf8"));
-}
-
-function save(data) {
-  fs.writeFileSync(DB_PATH, JSON.stringify(data, null, 2));
-}
+const db = require("../utils/db");
 
 module.exports = {
   getAll() {
-    return load();
+    return db.get("workflows") || {};
   },
 
   add(name, steps = []) {
-    const db = load();
-    db[name] = {
+    const workflows = db.get("workflows") || {};
+
+    workflows[name] = {
       name,
       steps,
       created: Date.now(),
       status: "ready"
     };
-    save(db);
-    return db[name];
+
+    db.set("workflows", workflows);
+    return workflows[name];
   },
 
   updateStatus(name, status) {
-    const db = load();
-    if (!db[name]) throw new Error(`Workflow '${name}' not found`);
-    db[name].status = status;
-    db[name].updated = Date.now();
-    save(db);
-    return db[name];
+    const workflows = db.get("workflows") || {};
+    if (!workflows[name]) throw new Error(`Workflow '${name}' not found`);
+
+    workflows[name].status = status;
+    workflows[name].updated = Date.now();
+
+    db.set("workflows", workflows);
+    return workflows[name];
   }
 };
