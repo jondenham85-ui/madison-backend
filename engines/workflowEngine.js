@@ -1,32 +1,25 @@
-const db = require("../utils/db");
+// engines/workflow.js
+const workflowEngine = require("./workflowEngine");
 
 module.exports = {
-  getAll() {
-    return db.get("workflows") || {};
+  getAll: () => {
+    if (typeof workflowEngine.getAll === "function") {
+      return workflowEngine.getAll();
+    }
+    return [
+      { id: 1, name: "default-workflow", status: "active" }
+    ];
   },
 
-  add(name, steps = []) {
-    const workflows = db.get("workflows") || {};
-
-    workflows[name] = {
-      name,
-      steps,
-      created: Date.now(),
-      status: "ready"
+  runWorkflow: (payload) => {
+    if (typeof workflowEngine.runWorkflow === "function") {
+      return workflowEngine.runWorkflow(payload);
+    }
+    return {
+      ok: true,
+      workflow: "default",
+      received: payload,
+      processedAt: new Date().toISOString()
     };
-
-    db.set("workflows", workflows);
-    return workflows[name];
-  },
-
-  updateStatus(name, status) {
-    const workflows = db.get("workflows") || {};
-    if (!workflows[name]) throw new Error(`Workflow '${name}' not found`);
-
-    workflows[name].status = status;
-    workflows[name].updated = Date.now();
-
-    db.set("workflows", workflows);
-    return workflows[name];
   }
 };
