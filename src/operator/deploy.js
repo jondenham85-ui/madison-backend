@@ -1,6 +1,12 @@
-module.exports = async function deploy(service) {
-  return {
-    success: true,
-    message: `Deployment triggered for ${service}`
-  };
+// src/operator/deploy.js
+
+module.exports = {
+  run: async (mode) => {
+    return {
+      ok: true,
+      mode,
+      status: "deploy-triggered",
+      timestamp: new Date().toISOString()
+    };
+  }
 };
