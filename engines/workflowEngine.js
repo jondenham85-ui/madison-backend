@@ -1,18 +1,13 @@
-// engines/workflowEngine.js
+function analyzeWorkflows(input) {
+  const { workflows = [] } = input || {};
+  const count = workflows.length;
+  const automated = workflows.filter(w => w && w.automated).length;
 
-module.exports = {
-  getAll: () => {
-    return [
-      { id: 1, name: "default-workflow", status: "active" }
-    ];
-  },
+  return {
+    count,
+    automated,
+    manual: count - automated
+  };
+}
 
-  runWorkflow: (payload) => {
-    return {
-      ok: true,
-      workflow: "default",
-      received: payload,
-      processedAt: new Date().toISOString()
-    };
-  }
-};
+module.exports = { analyzeWorkflows };
