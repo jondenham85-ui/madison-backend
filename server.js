@@ -1,158 +1,39 @@
-const express = require("express");
-const cors = require("cors");
+const express = require('express');
+const cors = require('cors');
+
+const operator = require('./operator');
+
 const app = express();
 
-// Middleware
 app.use(cors());
 app.use(express.json());
 
-// Load operator engine
-const operator = require("./src/operator");
+app.get('/', (req, res) => {
+  res.json({ status: 'ok', service: 'MadMadison backend' });
+});
 
-// Load conversational Madison
-const { madisonAI } = require("./src/ai/madison");
-
-// Load engines
-const product = require("./engines/product");
-const revenue = require("./engines/revenue");
-const workflow = require("./engines/workflow");
-const tier = require("./engines/tier");
-
-// OWNER LIST
-const OWNERS = [
-  "jondenham85@gmail.com",
-  "allydenham013@gmail.com"
-];
-
-// ===============================
-// OPERATOR MADISON (tasks)
-// ===============================
-app.post("/api/chat", async (req, res) => {
+app.post('/operator/task', async (req, res) => {
   try {
-    const { message } = req.body;
-
-    if (!message) {
-      return res.status(400).json({ error: "Message is required" });
-    }
-
-    const lower = message.toLowerCase();
-    let result;
-
-    // EXECUTE CODE
-    if (lower.startsWith("run ") || lower.includes("execute code")) {
-      const code = message.replace(/^run /i, "");
-      result = await operator.executeCode(code);
-    }
-
-    // READ FILE
-    else if (lower.startsWith("read file")) {
-      const path = message.replace(/read file/i, "").trim();
-      result = await operator.readFile(path);
-    }
-
-    // WRITE FILE
-    else if (lower.startsWith("write file")) {
-      const parts = message.replace(/write file/i, "").trim().split("::");
-      const path = parts[0]?.trim();
-      const content = parts[1]?.trim() || "";
-      result = await operator.writeFile(path, content);
-    }
-
-    // PATCH FILE
-    else if (lower.startsWith("patch file")) {
-      const parts = message.replace(/patch file/i, "").trim().split("::");
-      const path = parts[0]?.trim();
-      const patch = {
-        target: parts[1]?.trim(),
-        replace: parts[2]?.trim()
-      };
-      result = await operator.patchFile(path, patch);
-    }
-
-    // DEPLOY
-    else if (lower.includes("deploy")) {
-      result = await operator.deploy("full-system");
-    }
-
-    // DEFAULT: TASK ENGINE
-    else {
-      result = await operator.runTask(message);
-    }
-
-    res.json({ success: true, result });
-
+    const result = await operator.runTask(req.body);
+    res.json({ ok: true, result });
   } catch (err) {
-    console.error("AI Route Error:", err);
-    res.status(500).json({
-      success: false,
-      error: err.toString()
-    });
+    console.error('Operator task error:', err);
+    res.status(500).json({ ok: false, error: err.message });
   }
 });
 
-// ===============================
-// CONVERSATIONAL MADISON (chat)
-// ===============================
-app.post("/api/talk", async (req, res) => {
+app.post('/operator/ceo', async (req, res) => {
   try {
-    const { message } = req.body;
-    const reply = await madisonAI(message);
-    res.json({ reply });
+    const payload = { ...req.body, mode: 'ceo' };
+    const result = await operator.runTask(payload);
+    res.json({ ok: true, result });
   } catch (err) {
-    console.error("Talk error:", err);
-    res.status(500).json({ error: "Chat failed" });
+    console.error('CEO mode error:', err);
+    res.status(500).json({ ok: false, error: err.message });
   }
 });
 
-// ===============================
-// OWNER DASHBOARD (Jon + Alison)
-// ===============================
-app.post("/api/owner", async (req, res) => {
-  try {
-    const { email } = req.body;
-
-    if (!email || !OWNERS.includes(email)) {
-      return res.status(403).json({ error: "Access denied" });
-    }
-
-    res.json({
-      status: "owner-access-granted",
-      owner: email,
-      dashboard: {
-        products: product.getAll(),
-        revenue: revenue.getSummary(),
-        workflows: workflow.getAll(),
-        users: tier.getTier("all"),
-        system: {
-          status: "online",
-          uptime: process.uptime(),
-          memory: process.memoryUsage()
-        },
-        engine: {
-          status: "ready",
-          version: "1.0.0"
-        }
-      }
-    });
-
-  } catch (err) {
-    console.error("Owner dashboard error:", err);
-    res.status(500).json({ error: "Owner dashboard failed" });
-  }
-});
-
-// ===============================
-// HEALTH CHECK
-// ===============================
-app.get("/api/status", (req, res) => {
-  res.json({ status: "Madison backend online" });
-});
-
-// ===============================
-// PORT BINDING (Render)
-// ===============================
 const PORT = process.env.PORT || 3000;
-
 app.listen(PORT, () => {
-  console.log(`Madison backend running on port ${PORT}`);
+  console.log(`Server running on port ${PORT}`);
 });
