@@ -1,4 +1,4 @@
-import pkg from "pg";
+const pkg = require("pg");
 const { Pool } = pkg;
 
 const pool = new Pool({
@@ -6,6 +6,6 @@ const pool = new Pool({
   ssl: { rejectUnauthorized: false }
 });
 
-export default {
+module.exports = {
   query: (text, params) => pool.query(text, params)
 };
